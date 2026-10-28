@@ -79,4 +79,4 @@
 
 **Decisión humana:** aceptado.
 **Motivo:** el repositorio delega todas las reglas en el dominio, las pruebas automáticas pasan y la inspección manual del JSON coincide con lo esperado; las limitaciones quedaron registradas arriba.
-**Evidencia:** , tests/test_persistencia.py.
+**Evidencia:** bcc3ff6, tests/test_persistencia.py.
