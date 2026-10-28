@@ -115,4 +115,4 @@
 
 **Decisión humana:** aceptado.
 **Motivo:** la CLI delega en el repositorio, las rutas no dependen del directorio de trabajo según el código, y el ejemplo de la consigna se comprobó a mano; las limitaciones quedaron registradas.
-**Evidencia:** commit de la etapa 3 (hash a completar), tests/test_cli.py, docs/prueba_persistencia.md.
+**Evidencia:** commit de la etapa 3 (eca0407), tests/test_cli.py, docs/prueba_persistencia.md.
