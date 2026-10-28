@@ -13,36 +13,54 @@ La especificación inicial quedó versionada en el commit `a4b394f`, antes de
 escribir código; los cambios posteriores están en el historial de `SPEC.md` y en
 el commit `a17c4c7`.
 
+Requisitos:
+
+- **R1:** Leer el inventario y consultar disponibilidad de una unidad para un
+  intervalo. La consulta aplica las mismas validaciones que la creación (unidad
+  conocida, fechas válidas, inicio < fin, inicio no pasado).
+- **R2:** Crear una reserva con id, unidad, solicitante, inicio y fin (una unidad
+  por reserva).
+- **R3:** Cancelar una reserva conservando id y datos; el intervalo queda libre.
+- **R4:** Persistir reservas y estados y recuperarlos al reiniciar.
+- **R5:** Validar unidad conocida, solicitante válido, fechas válidas e inicio <
+  fin.
+- **R6:** Rechazar superposiciones de reservas activas de la misma unidad.
+- **R7:** La disponibilidad usa el mismo predicado de superposición y las mismas
+  validaciones que la creación.
+
 ## 2. Solución
 
 ### Estructura
 
 ```text
-.github/
-  copilot-instructions.md
-data/
-  inventario.json
-  reservas.json          (datos persistidos; no versionado)
-docs/
-  prueba_persistencia.md
-reservas/
-  __init__.py
-  cli.py
-  dominio.py
-  repositorio.py
-tests/
-  test_cli.py
-  test_dominio.py
-  test_persistencia.py
-README.md
-SPEC.md
-PROGRESS.md
+challenge-agents/
+├── .github/
+│   └── copilot-instructions.md
+├── data/
+│   ├── inventario.json
+│   └── reservas.json        (se crea al usar la app; no versionado)
+├── docs/
+│   └── prueba_persistencia.md
+├── reservas/
+│   ├── __init__.py
+│   ├── cli.py
+│   ├── dominio.py
+│   └── repositorio.py
+├── tests/
+│   ├── test_cli.py
+│   ├── test_dominio.py
+│   └── test_persistencia.py
+├── .gitignore
+├── PROGRESS.md
+├── README.md
+└── SPEC.md
 ```
 
 ### Decisiones y requisitos
 
 - Requisito previo registrado: Python 3.12.6. Dependencias externas: ninguna;
-  se usa solo la biblioteca estándar.
+  se usa solo la biblioteca estándar. No hay `requirements.txt` ni archivo de
+  bloqueo porque no hay dependencias externas.
 - El inventario inicial de unidades físicas está en
   [`data/inventario.json`](./data/inventario.json) y la CLI lo carga desde la
   carpeta `data` junto a los módulos del proyecto.
@@ -72,6 +90,19 @@ PROGRESS.md
   ```text
   python -m unittest discover -s tests -v
   ```
+
+### Supuestos y reglas
+
+- Zona horaria UTC-3 fija (Argentina no tiene horario de verano).
+- Fechas ISO 8601 con offset `-03:00`; sin offset o con otro offset se rechazan.
+- Se rechaza un inicio anterior al momento actual; un inicio igual al actual se
+  acepta. Aplica a creación y disponibilidad.
+- Duración sin mínimo ni máximo, salvo `inicio < fin`; sin límite de
+  anticipación.
+- El solicitante se guarda sin espacios al inicio ni al final (`strip`).
+- IDs secuenciales `RES-001`, `RES-002`... y no reutilizados.
+- Intervalos semiabiertos `[inicio, fin)`: 10:00-11:00 y 11:00-12:00 no se
+  superponen.
 
 ### Sesión ejecutada en consola el 28/10/2026
 
@@ -119,6 +150,34 @@ de dominio devolvió `1` (registrado en [PROGRESS.md](./PROGRESS.md)).
   persistencia con reinicio real como ejecutado manualmente; los resultados
   observados están en [`docs/prueba_persistencia.md`](./docs/prueba_persistencia.md).
 
+### Cómo se verificó
+
+**Automático (ejecutado por mí):**
+
+- `python -m unittest discover -s tests -v`: 15 tests, Python 3.12.6.
+
+**Manual (ejecutado por mí):**
+
+- Ejemplo de la consigna en la consola.
+- Código de salida `1` ante un error de dominio.
+- Ejecución desde otra carpeta con `PYTHONPATH` apuntando al repo; `listar`
+  mostró las reservas de `data/reservas.json` del repo.
+- Procedimiento [`docs/prueba_persistencia.md`](./docs/prueba_persistencia.md):
+  dos reinicios de terminal; la reserva sobrevivió primero activa y luego
+  cancelada.
+- Inspección del JSON generado con un repositorio en una carpeta temporal.
+- Prueba de mutación en `se_superponen`: cambiar `<` por `<=` hizo fallar
+  `test_limites_consecutivos`; tras revertir el cambio volvieron a pasar los
+  13 tests.
+
+**Informado por el agente y no verificado por mí de forma independiente:**
+
+- PROGRESS.md no marca verificaciones informadas por el agente que no hayan
+  sido verificadas por mí de forma independiente.
+
+[Procedimiento manual de persistencia](./docs/prueba_persistencia.md) ·
+[Criterios de aceptación y pruebas](./SPEC.md#criterios-de-aceptación-y-pruebas)
+
 ## 3. Preparación del agente
 
 ### Entorno registrado
@@ -160,12 +219,43 @@ semiabiertos, un único predicado de superposición, reservas activas como únic
 bloqueantes, cancelación que conserva el registro, offset UTC-03:00 e inicio no
 pasado con reloj inyectable. El origen y la evidencia están registrados en
 [PROGRESS.md](./PROGRESS.md), incluyendo la corrección solicitada tras detectar
-que disponibilidad no validaba el pasado.
+que disponibilidad no validaba el pasado. La regla de intervalos semiabiertos
+está en `.github/copilot-instructions.md`; `test_limites_consecutivos` la
+verifica y la prueba de mutación (`<` por `<=`) la hizo fallar.
 
 [PROGRESS.md](./PROGRESS.md) se usa como retención del progreso, contexto,
 hallazgos, decisiones humanas y comandos ejecutados por etapa.
 
+### Herramientas y controles
+
+- Modo: Agent.
+- Permisos para leer y editar archivos del proyecto y ejecutar comandos en la
+  terminal: no registrado.
+- "Manual permissions" en la etapa 1.
+- Los commits los hace el humano.
+- Antes de aceptar cada etapa se revisó el código, se corrieron las pruebas y
+  se anotó el resultado en PROGRESS.md.
+
+### Función y motivo de la elección
+
+**Función:** GitHub Copilot en modo Agent dentro de VS Code escribió el código y las pruebas por etapas, y ejecutó comandos en la terminal. Yo definí la especificación, revisé cada entrega, corrí las pruebas por mi cuenta e hice todos los commits.
+
+**Motivo:** ya usaba GitHub Copilot en VS Code, así que me resultó más simple trabajar con ese entorno que configurar otro cliente de agente (por ejemplo OpenCode o Codex). Elegí Python con solo la biblioteca estándar porque permite empezar sin instalar dependencias y es reproducible en cualquier máquina con Python; es mi primera vez usando Python y no tenía experiencia previa con el lenguaje.
+
 ## 4. Registro de decisiones y delegación
+
+Versión entregada: rama main, commit [HASH A COMPLETAR]
+
+### Decisiones significativas
+
+| Decisión | Motivo | Alternativa descartada | Consecuencia |
+|---|---|---|---|
+| Python solo con biblioteca estándar | Menos dependencias y ejecución reproducible sin instalar nada | TypeScript/Node con React | Sin interfaz gráfica; solo consola |
+| UTC-3 fijo | Argentina no tiene horario de verano; evita depender de tzdata en Windows | Zonas IANA con `zoneinfo` | Si cambiara la regla horaria habría que modificar el código |
+| Rechazar inicios pasados con reloj inyectable | Evita reservas sin sentido y permite pruebas con fecha fija | Permitir fechas pasadas | Los ejemplos con fechas fijas vencen con el tiempo |
+| Persistencia en JSON con escritura atómica | Sin dependencias y fácil de explicar | SQLite | No hay consultas ni control de concurrencia |
+| Consola como interfaz | La consigna no exige interfaz gráfica | API local o interfaz web | Uso solo desde terminal |
+| Disponibilidad aplica las mismas validaciones que la creación | Exigido por la consigna y por R7 | Validar solo superposición | Surgió de la revisión de la etapa 1 (ver episodio 1) |
 
 ### Etapa 1: corrección de la disponibilidad
 
@@ -224,6 +314,9 @@ hallazgos, decisiones humanas y comandos ejecutados por etapa.
   en el repositorio, que las rutas no dependen del directorio de trabajo y que
   el ejemplo de la consigna se comprobó a mano; las limitaciones quedaron
   registradas.
+- **Comprobación de rutas:** se ejecutó
+  `python -m reservas.cli listar` desde otra carpeta, con `PYTHONPATH` apuntando
+  al repo, y mostró las reservas de `data/` del repo.
 - **Evidencia:** commit [eca0407](https://github.com/xMarianoDEV/challenge-agents/commit/eca0407),
   [`tests/test_cli.py`](./tests/test_cli.py) y
   [`docs/prueba_persistencia.md`](./docs/prueba_persistencia.md). La revisión
