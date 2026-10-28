@@ -13,6 +13,8 @@
 - [28/10/2026] Etapa 1 (agente): dominio puro, data/inventario.json y 6 pruebas. El agente informó "Sin pendientes".
 - [28/10/2026] Etapa 1 (revisión humana): encontré que la disponibilidad no valida el pasado y que faltan casos de prueba. Se pidió corrección.
 - [28/10/2026] Etapa 1 (corrección): el agente unificó las validaciones en `_validar_solicitud` y agregó 3 pruebas nuevas más 2 casos en test_entradas_invalidas. Verifiqué con los tests (9 OK).
+- [28/10/2026] Etapa 1 cerrada: verifiqué yo mismo 9 pruebas OK. Commits 050f840 (versión inicial del agente) y b195575 (corrección). SPEC.md actualizado con los nombres reales de pruebas y dos supuestos nuevos.
+- [28/10/2026] Pendiente detectado en la revisión: ninguna prueba cubre un inicio igual al momento actual (debe aceptarse según SPEC). Se pide en la etapa 2.
 
 ## Etapa 1: dominio + pruebas
 
@@ -32,6 +34,7 @@
 - 28/10/2026, Python 3.12.6: `python -m unittest discover -s tests -v` → Ran 6 tests, OK.
 - Leí dominio.py: predicado único en `se_superponen`, usado por la creación a través de `consultar_disponibilidad`; solo `activa` bloquea; cancelar conserva los datos; fechas sin offset rechazadas.
 - Revisé test_entradas_invalidas: cubre unidad desconocida, solicitante vacío y de solo espacios, fecha inválida, sin offset, offset distinto, inicio > fin e inicio pasado. Faltaban inicio == fin y fecha de calendario inexistente.
+- 28/10/2026, Python 3.12.6, tras la corrección: mismo comando → Ran 9 tests, OK.
 
 **Hallazgos:**
 - `consultar_disponibilidad` no validaba el inicio pasado pero `crear_reserva` sí, lo que contradice R7 y la consigna.
@@ -45,3 +48,4 @@
 
 **Decisión humana:** aceptado con corrección.
 **Motivo:** el dominio cumplía el predicado único, los estados y la cancelación, así que lo acepté. Corregí la disponibilidad porque la consigna exige que use las mismas reglas que la creación; sin la corrección, un horario pasado aparecía "disponible" y luego la creación lo rechazaba.
+**Evidencia:** commit inicial 050f840, commit de corrección b195575, tests/test_dominio.py.
