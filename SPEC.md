@@ -59,9 +59,13 @@ Autenticación y roles, notificaciones, pagos, integraciones externas, despliegu
 | Cancelar dos veces da error | R3 | test_cancelar_reserva_ya_cancelada_da_error | ejecutada |
 | Disponibilidad coincide con lo que permite la creación | R7 | test_disponibilidad_consistente_con_creacion | ejecutada |
 | Disponibilidad con inicio pasado da error | R1, R7 | test_disponibilidad_con_inicio_pasado_da_error | ejecutada |
-| Inicio igual al momento actual se acepta | R5 | (a agregar en etapa 2) | pendiente |
-| Reservas activas y canceladas persisten tras reiniciar | R4 | tests/test_persistencia.py + procedimiento manual | pendiente |
+| Inicio igual al momento actual se acepta | R5 | test_inicio_igual_al_momento_actual_se_acepta | ejecutada |
+| Reservas activas y canceladas persisten tras reiniciar; los ids continúan la secuencia | R4 | test_persiste_reservas_y_continua_secuencia_tras_reiniciar | ejecutada (automática) |
+| Tras reiniciar, una cancelada no bloquea y una activa sí | R4, R7 | test_consulta_tras_reiniciar_respeta_estados | ejecutada (automática) |
+| Archivo JSON corrupto da error y no se modifica | R4 | test_archivo_corrupto_da_error_y_no_se_modifica | ejecutada (automática) |
+| Persistencia con reinicio real del proceso | R4 | procedimiento manual (etapa 3) | pendiente |
 
 ## Historial de cambios de la especificación
 - 28/10/2026 (versión inicial): requisitos R1-R7, reglas y supuestos.
 - 28/10/2026 (revisión tras etapa 1): se aclara en R1/R7 que la disponibilidad aplica las mismas validaciones que la creación, incluido el inicio no pasado. Motivo: la revisión encontró que la consulta mostraba "disponible" un horario que la creación rechazaba. Se agregan supuestos (strip del solicitante, ValueError, formato de ids) y los nombres reales de las pruebas.
+- 28/10/2026 (cierre de etapa 2): se actualiza la tabla con las pruebas reales de persistencia y de inicio igual al momento actual. Se separa la verificación automática de la manual, que sigue pendiente hasta tener la consola.

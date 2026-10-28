@@ -48,6 +48,14 @@ class DominioReservasTests(unittest.TestCase):
         self.assertEqual(reserva.solicitante, "Ana")
         self.assertEqual(reserva.estado, ESTADO_ACTIVA)
 
+    def test_inicio_igual_al_momento_actual_se_acepta(self):
+        reserva = self.crear(
+            inicio="2026-10-28T09:00:00-03:00",
+            fin="2026-10-28T10:00:00-03:00",
+        )
+
+        self.assertEqual(reserva.inicio, AHORA)
+
     def test_rechazo_superposicion(self):
         existente = self.crear()
 

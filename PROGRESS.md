@@ -15,6 +15,9 @@
 - [28/10/2026] Etapa 1 (corrección): el agente unificó las validaciones en `_validar_solicitud` y agregó 3 pruebas nuevas más 2 casos en test_entradas_invalidas. Verifiqué con los tests (9 OK).
 - [28/10/2026] Etapa 1 cerrada: verifiqué yo mismo 9 pruebas OK. Commits 050f840 (versión inicial del agente) y b195575 (corrección). SPEC.md actualizado con los nombres reales de pruebas y dos supuestos nuevos.
 - [28/10/2026] Pendiente detectado en la revisión: ninguna prueba cubre un inicio igual al momento actual (debe aceptarse según SPEC). Se pide en la etapa 2.
+- [28/10/2026] Etapa 2: añadidos el repositorio JSON con escritura atómica, tres pruebas de persistencia y la prueba de inicio igual al reloj; ejecutado `python -m unittest discover -s tests -v` → 13 tests, OK.
+- [28/10/2026] Etapa 2 revisada: inspección manual del JSON correcta; limitaciones registradas.
+- [28/10/2026] Etapa 2: prueba de mutación en `se_superponen` detectada por `test_limites_consecutivos`; cambio revertido.
 
 ## Etapa 1: dominio + pruebas
 
@@ -49,3 +52,31 @@
 **Decisión humana:** aceptado con corrección.
 **Motivo:** el dominio cumplía el predicado único, los estados y la cancelación, así que lo acepté. Corregí la disponibilidad porque la consigna exige que use las mismas reglas que la creación; sin la corrección, un horario pasado aparecía "disponible" y luego la creación lo rechazaba.
 **Evidencia:** commit inicial 050f840, commit de corrección b195575, tests/test_dominio.py.
+
+
+## Etapa 2: persistencia
+
+**Objetivo / requisitos:** R4 (persistencia), R7 (ids y consulta delegados al dominio).
+
+**Contexto dado:** .github/copilot-instructions.md, SPEC.md y reservas/dominio.py, nombrados en el prompt. Excluido: el PDF de la consigna.
+
+**Prompt (extracto):** "Etapa 2: persistencia. No cambies las reglas del dominio ... ids secuenciales RES-001 ... escritura atómica: archivo temporal y os.replace ... si el JSON está corrupto, no lo sobrescribas ... No hagas commits."
+
+**Qué hizo el agente (informado por él):** creó reservas/repositorio.py, tests/test_persistencia.py, reservas/__init__.py y la prueba de inicio igual al reloj; informó 13 tests OK.
+
+**Qué verifiqué yo (ejecutado):**
+- 28/10/2026, Python 3.12.6: `python -m unittest discover -s tests -v` → Ran 13 tests, OK.
+- Leí repositorio.py: delega en el dominio sin duplicar reglas; guarda antes de actualizar la memoria; ids a partir del máximo existente; fechas con offset -03:00.
+- Inspección del JSON real (script con un repositorio en carpeta temporal): el archivo contiene RES-001, MIC-01, inicio `2026-10-29T10:00:00-03:00`, estado `activa`; la carpeta quedó con un solo archivo (sin temporales).
+- Hallazgo de entorno: la primera vez ejecuté el script desde C:\Users\stemb y falló con `ModuleNotFoundError: No module named 'reservas'`; al ejecutarlo desde la raíz del repo funcionó. Confirma que las rutas relativas dependen del directorio de trabajo.
+- Prueba de mutación (`<` → `<=` en `se_superponen`, temporal, revertida con `git restore reservas/dominio.py`): falló 1 test, `test_limites_consecutivos` (ERROR: ValueError "La unidad ya está reservada durante ese intervalo"); los otros 12 pasaron. Tras revertir, `git status` no mostró `dominio.py` modificado y volvieron 13 tests OK. Conclusión: la prueba de límites consecutivos protege la regla de intervalos semiabiertos.
+
+**Hallazgos / limitaciones:**
+- La ruta por defecto es relativa al directorio de trabajo (a resolver en la etapa 3).
+- Las pruebas usan un inventario reducido de 2 unidades.
+- La atomicidad no tiene prueba directa; solo se prueba guardado y recarga.
+- Del archivo corrupto solo se prueba JSON inválido.
+
+**Decisión humana:** aceptado.
+**Motivo:** el repositorio delega todas las reglas en el dominio, las pruebas automáticas pasan y la inspección manual del JSON coincide con lo esperado; las limitaciones quedaron registradas arriba.
+**Evidencia:** , tests/test_persistencia.py.
