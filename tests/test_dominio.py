@@ -88,8 +88,13 @@ class DominioReservasTests(unittest.TestCase):
             {"solicitante": ""},
             {"solicitante": "   "},
             {"inicio": "fecha"},
+            {"inicio": "2026-02-30T10:00:00-03:00"},
             {"inicio": "2026-10-29T10:00:00"},
             {"inicio": "2026-10-29T10:00:00+00:00"},
+            {
+                "inicio": "2026-10-29T10:00:00-03:00",
+                "fin": "2026-10-29T10:00:00-03:00",
+            },
             {
                 "inicio": "2026-10-29T11:00:00-03:00",
                 "fin": "2026-10-29T10:00:00-03:00",
@@ -124,10 +129,64 @@ class DominioReservasTests(unittest.TestCase):
                 "MIC-01",
                 "2026-10-29T10:00:00-03:00",
                 "2026-10-29T11:00:00-03:00",
+                reloj=lambda: AHORA,
             )
         )
         nueva = self.crear(reservas=canceladas, id_reserva="reserva-2")
         self.assertEqual(nueva.estado, ESTADO_ACTIVA)
+
+    def test_cancelar_reserva_ya_cancelada_da_error(self):
+        existente = self.crear()
+        canceladas = cancelar_reserva((existente,), existente.id)
+
+        with self.assertRaises(ValueError):
+            cancelar_reserva(canceladas, existente.id)
+
+    def test_disponibilidad_consistente_con_creacion(self):
+        existente = self.crear()
+        reservas = (existente,)
+        inicio = "2026-10-29T10:30:00-03:00"
+        fin = "2026-10-29T11:30:00-03:00"
+
+        disponible = consultar_disponibilidad(
+            reservas,
+            INVENTARIO,
+            "MIC-01",
+            inicio,
+            fin,
+            reloj=lambda: AHORA,
+        )
+
+        self.assertFalse(disponible)
+        with self.assertRaises(ValueError):
+            self.crear(
+                reservas=reservas,
+                inicio=inicio,
+                fin=fin,
+                id_reserva="reserva-2",
+            )
+        self.assertTrue(
+            consultar_disponibilidad(
+                (),
+                INVENTARIO,
+                "MIC-01",
+                inicio,
+                fin,
+                reloj=lambda: AHORA,
+            )
+        )
+        self.assertEqual(self.crear(inicio=inicio, fin=fin).estado, ESTADO_ACTIVA)
+
+    def test_disponibilidad_con_inicio_pasado_da_error(self):
+        with self.assertRaises(ValueError):
+            consultar_disponibilidad(
+                (),
+                INVENTARIO,
+                "MIC-01",
+                "2026-10-28T08:59:00-03:00",
+                "2026-10-28T10:00:00-03:00",
+                reloj=lambda: AHORA,
+            )
 
 
 if __name__ == "__main__":

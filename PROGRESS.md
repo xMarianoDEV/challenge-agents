@@ -11,7 +11,8 @@
 ## Registro cronológico
 - [28/10/2026] Repo clonado. Decisiones: Python stdlib, zona UTC-3 fija, JSON, consola, rechazo de fechas pasadas con reloj inyectable.
 - [28/10/2026] Etapa 1 (agente): dominio puro, data/inventario.json y 6 pruebas. El agente informó "Sin pendientes".
-- [28/10/2026] Etapa 1 (revisión humana): encontré que la disponibilidad no valida el pasado y que faltan casos de prueba. Se pidió corrección (ver abajo).
+- [28/10/2026] Etapa 1 (revisión humana): encontré que la disponibilidad no valida el pasado y que faltan casos de prueba. Se pidió corrección.
+- [28/10/2026] Etapa 1 (corrección): el agente unificó las validaciones en `_validar_solicitud` y agregó 3 pruebas nuevas más 2 casos en test_entradas_invalidas. Verifiqué con los tests (9 OK).
 
 ## Etapa 1: dominio + pruebas
 
@@ -37,3 +38,10 @@
 - Faltaban pruebas: cancelar repetida y consistencia entre disponibilidad y creación.
 - Todos los errores son `ValueError`: limitación asumida por ahora.
 
+**Corrección (28/10/2026):**
+- Prompt (extracto): "Hacé que consultar_disponibilidad aplique las mismas validaciones que crear_reserva ... sin duplicar reglas; debe recibir el reloj inyectable."
+- Qué cambió el agente: centralizó en `_validar_solicitud` la validación de unidad, intervalo e inicio futuro; disponibilidad recibe un reloj; agregó las pruebas solicitadas.
+- Mi verificación: `python -m unittest discover -s tests -v` → Ran 9 tests, OK.
+
+**Decisión humana:** aceptado con corrección.
+**Motivo:** el dominio cumplía el predicado único, los estados y la cancelación, así que lo acepté. Corregí la disponibilidad porque la consigna exige que use las mismas reglas que la creación; sin la corrección, un horario pasado aparecía "disponible" y luego la creación lo rechazaba.

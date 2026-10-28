@@ -47,14 +47,25 @@ def consultar_disponibilidad(
     unidad: str,
     inicio: str,
     fin: str,
+    *,
+    reloj: Callable[[], datetime],
 ) -> bool:
-    if unidad not in inventario:
-        raise ValueError(f"Unidad desconocida: {unidad}")
-    inicio_fecha, fin_fecha = _validar_intervalo(inicio, fin)
+    inicio_fecha, fin_fecha = _validar_solicitud(
+        inventario, unidad, inicio, fin, reloj
+    )
+    return _esta_disponible(reservas, unidad, inicio_fecha, fin_fecha)
+
+
+def _esta_disponible(
+    reservas: Sequence[Reserva],
+    unidad: str,
+    inicio: datetime,
+    fin: datetime,
+) -> bool:
     return not any(
         reserva.estado == ESTADO_ACTIVA
         and reserva.unidad == unidad
-        and se_superponen(inicio_fecha, fin_fecha, reserva.inicio, reserva.fin)
+        and se_superponen(inicio, fin, reserva.inicio, reserva.fin)
         for reserva in reservas
     )
 
@@ -70,20 +81,12 @@ def crear_reserva(
     reloj: Callable[[], datetime],
     generar_id: Callable[[], str],
 ) -> Reserva:
-    if unidad not in inventario:
-        raise ValueError(f"Unidad desconocida: {unidad}")
+    inicio_fecha, fin_fecha = _validar_solicitud(
+        inventario, unidad, inicio, fin, reloj
+    )
     if not isinstance(solicitante, str) or not solicitante.strip():
         raise ValueError("El solicitante no puede estar vacío.")
-
-    inicio_fecha, fin_fecha = _validar_intervalo(inicio, fin)
-    ahora = reloj()
-    if ahora.tzinfo is None or ahora.utcoffset() is None:
-        raise ValueError("El reloj debe devolver una fecha con zona horaria.")
-    if inicio_fecha < ahora:
-        raise ValueError("No se pueden crear reservas con inicio en el pasado.")
-    if not consultar_disponibilidad(
-        reservas, inventario, unidad, inicio, fin
-    ):
+    if not _esta_disponible(reservas, unidad, inicio_fecha, fin_fecha):
         raise ValueError("La unidad ya está reservada durante ese intervalo.")
 
     id_reserva = generar_id()
@@ -99,6 +102,25 @@ def crear_reserva(
         inicio=inicio_fecha,
         fin=fin_fecha,
     )
+
+
+def _validar_solicitud(
+    inventario: Mapping[str, str],
+    unidad: str,
+    inicio: str,
+    fin: str,
+    reloj: Callable[[], datetime],
+) -> tuple[datetime, datetime]:
+    if unidad not in inventario:
+        raise ValueError(f"Unidad desconocida: {unidad}")
+
+    inicio_fecha, fin_fecha = _validar_intervalo(inicio, fin)
+    ahora = reloj()
+    if ahora.tzinfo is None or ahora.utcoffset() is None:
+        raise ValueError("El reloj debe devolver una fecha con zona horaria.")
+    if inicio_fecha < ahora:
+        raise ValueError("No se permiten reservas con inicio en el pasado.")
+    return inicio_fecha, fin_fecha
 
 
 def cancelar_reserva(
