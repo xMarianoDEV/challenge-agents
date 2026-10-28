@@ -21,6 +21,7 @@
 - [28/10/2026] Etapa 3: ejecuté `python -m unittest discover -s tests -v` (15 tests, OK) y `python -m reservas.cli equipos` (mostró las 5 unidades del inventario).
 - [28/10/2026] Etapa 3 (agente): CLI, 2 pruebas y procedimiento manual escrito. Informó 15 tests OK y que no ejecutó el procedimiento.
 - [28/10/2026] Etapa 3 (revisión humana): ejemplo de la consigna ejecutado en la consola real; procedimiento manual de persistencia ejecutado por mí (resultados en docs/prueba_persistencia.md).
+- [28/10/2026] Documentación: se registra el flujo Keep/Undo como control humano de edición de archivos y se corrige la versión entregada: el último commit de código es eca0407; los posteriores son solo de documentación.
 
 
 ## Etapa 1: dominio + pruebas

@@ -209,9 +209,11 @@ Los contextos e instrucciones concretos de cada etapa se registran en la
 sección 4.
 
 El modo y permiso registrados para la etapa 1 fueron Agent con "Manual
-permissions" (aprobación de cada acción). También se registró que el humano hace
-los commits. Para las etapas posteriores, el permiso específico no está
-registrado.
+permissions" (aprobación de cada acción). En todas las etapas el flujo fue el
+mismo: yo escribía el prompt, el agente generaba o modificaba archivos del
+proyecto y yo decidía Keep o Undo sobre cada cambio en el editor antes de
+aceptarlo. Los commits los hice siempre yo. El modo de permisos para ejecutar
+comandos de terminal en las etapas 2 y 3 no quedó registrado.
 
 La adaptación específica a las reglas de dominio se documentó en
 [.github/copilot-instructions.md](./.github/copilot-instructions.md): intervalos
@@ -229,9 +231,10 @@ hallazgos, decisiones humanas y comandos ejecutados por etapa.
 ### Herramientas y controles
 
 - Modo: Agent.
-- Permisos para leer y editar archivos del proyecto y ejecutar comandos en la
-  terminal: no registrado.
-- "Manual permissions" en la etapa 1.
+- Edición de archivos: el agente proponía cambios en archivos del proyecto y yo
+  los aceptaba (Keep) o descartaba (Undo) en el editor.
+- Ejecución de comandos en terminal: con "Manual permissions" en la etapa 1;
+  en las etapas 2 y 3 el permiso específico no quedó registrado.
 - Los commits los hace el humano.
 - Antes de aceptar cada etapa se revisó el código, se corrieron las pruebas y
   se anotó el resultado en PROGRESS.md.
@@ -244,7 +247,10 @@ hallazgos, decisiones humanas y comandos ejecutados por etapa.
 
 ## 4. Registro de decisiones y delegación
 
-Versión entregada: rama `main`, commit `26972f0` (último commit de código y documentación; el commit siguiente solo registra este hash).
+Versión entregada: rama `main`. El último commit que modifica código y pruebas
+es `eca0407` (etapa 3: consola, pruebas de CLI y procedimiento manual de
+persistencia). Los commits posteriores modifican solo documentación (README.md
+y PROGRESS.md) y no alteran el código ni las pruebas.
 
 ### Decisiones significativas
 
