@@ -244,7 +244,7 @@ hallazgos, decisiones humanas y comandos ejecutados por etapa.
 
 ## 4. Registro de decisiones y delegación
 
-Versión entregada: rama main, commit [HASH A COMPLETAR]
+Versión entregada: rama `main`, commit `26972f0` (último commit de código y documentación; el commit siguiente solo registra este hash).
 
 ### Decisiones significativas
 
