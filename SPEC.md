@@ -42,6 +42,7 @@ Cada ID es una unidad física distinta.
 - Los errores de dominio son ValueError con mensaje en español; no distinguen tipo de error.
 - Ids de reserva secuenciales y legibles (RES-001, RES-002...), generados al crear y nunca reutilizados.
 - Persistencia en data/reservas.json (no versionado), con escritura atómica.
+- Interfaz: consola con `python -m reservas.cli` desde la raíz del repo. Si el solicitante tiene espacios va entre comillas. Un error de dominio se informa por stderr y el programa sale con código 1.
 - Un solo usuario local, sin autenticación.
 
 ## Fuera de alcance
@@ -63,9 +64,11 @@ Autenticación y roles, notificaciones, pagos, integraciones externas, despliegu
 | Reservas activas y canceladas persisten tras reiniciar; los ids continúan la secuencia | R4 | test_persiste_reservas_y_continua_secuencia_tras_reiniciar | ejecutada (automática) |
 | Tras reiniciar, una cancelada no bloquea y una activa sí | R4, R7 | test_consulta_tras_reiniciar_respeta_estados | ejecutada (automática) |
 | Archivo JSON corrupto da error y no se modifica | R4 | test_archivo_corrupto_da_error_y_no_se_modifica | ejecutada (automática) |
-| Persistencia con reinicio real del proceso | R4 | procedimiento manual (etapa 3) | pendiente |
+| Reservar, listar y cancelar por consola; un error de dominio da mensaje claro y código distinto de cero | R2, R3, R5 | test_reservar_listar_y_cancelar, test_error_de_dominio_sin_traceback (test_cli.py) | ejecutada |
+| Persistencia con reinicio real del proceso | R4 | docs/prueba_persistencia.md | ejecutada manualmente, ver docs/prueba_persistencia.md |
 
 ## Historial de cambios de la especificación
 - 28/10/2026 (versión inicial): requisitos R1-R7, reglas y supuestos.
 - 28/10/2026 (revisión tras etapa 1): se aclara en R1/R7 que la disponibilidad aplica las mismas validaciones que la creación, incluido el inicio no pasado. Motivo: la revisión encontró que la consulta mostraba "disponible" un horario que la creación rechazaba. Se agregan supuestos (strip del solicitante, ValueError, formato de ids) y los nombres reales de las pruebas.
 - 28/10/2026 (cierre de etapa 2): se actualiza la tabla con las pruebas reales de persistencia y de inicio igual al momento actual. Se separa la verificación automática de la manual, que sigue pendiente hasta tener la consola.
+- 28/10/2026 (cierre de etapa 3): se agrega la consola y su procedimiento manual de persistencia; se documenta que los ejemplos requieren fechas futuras.
